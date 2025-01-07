@@ -182,23 +182,18 @@ class TTSSystem:
 if __name__ == "__main__":
     tts = TTSSystem(superres_strength=1.0)
     
-    while True:
-        try:
-            print("-" * 50)
-            text = input("Enter text (Ctrl+C to exit): ")
-            if not text.strip():
-                continue
-                
-            audio, sr = tts.synthesize(text)
+    try:
+        text = 'Esta es una prueba de texto a voz.'
+        if not text.strip():
+            pass
             
-            from scipy.io.wavfile import write
-            output_path = "output_audio.wav"
-            write(output_path, sr, audio)
-            print(f"Generated: {output_path}")
-            
-        except KeyboardInterrupt:
-            print("\nExiting...")
-            break
-        except Exception as e:
-            print(f"Error: {str(e)}")
-            continue
+        audio, sr = tts.synthesize(text)
+        
+        from scipy.io.wavfile import write
+        output_path = "output_audio.wav"
+        write(output_path, sr, audio)
+        print(f"Generated: {output_path}")
+        
+
+    except Exception as e:
+        print(f"Error: {str(e)}")
