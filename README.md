@@ -33,15 +33,7 @@ git clone --recursive https://github.com/justinjohn0306/hifi-gan.git
 
 Descarga los modelos preentrenados desde [este enlace](https://drive.google.com/drive/folders/1ZlLYwqYV9Cd_JBrOhMRvXnbq6Zy3oKdl?usp=sharing) y colócalos en la raíz del proyecto.
 
-### 4. Configurar directorios
-
-Establece la variable de entorno `PYTHONPATH` con las rutas correctas de los repositorios clonados. En PowerShell, utiliza el siguiente comando:
-
-```powershell
-$env:PYTHONPATH="D:\workJhonatanBecerra\tacotron-docker\tacotron2;D:\workJhonatanBecerra\tacotron-docker\hifi-gan"
-```
-
-### 5. Ejecutar la aplicación
+### 4. Ejecutar la aplicación
 
 Ejecuta el siguiente comando para iniciar el programa:
 
