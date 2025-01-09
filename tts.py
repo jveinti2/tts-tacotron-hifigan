@@ -21,6 +21,7 @@ import resampy
 
 class TTSSystem:
     def __init__(self, superres_strength=1.0):
+        print(''.center(100, '*'))
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.superres_strength = superres_strength
         self.load_pronunciation_dict()
@@ -100,7 +101,7 @@ class TTSSystem:
                 try:
                     arpa = self.pronunciation_dict.get(word.upper())
                     if arpa:
-                        processed.append(f"{{{arpa}}}")
+                        processed.append(f"{arpa}")
                     else:
                         processed.append(word)
                 except KeyError:
@@ -115,7 +116,8 @@ class TTSSystem:
     def synthesize(self, text, use_pronunciation=False):
         """Generate audio from text."""
         processed_text = self.process_text(text, use_pronunciation)
-        
+        print("Processed Text:", processed_text)
+
         with torch.no_grad():
             sequence = torch.LongTensor(
                 text_to_sequence(processed_text, ['basic_cleaners'])
@@ -123,17 +125,14 @@ class TTSSystem:
             
             mel_outputs, mel_outputs_postnet, _, _ = self.model.inference(sequence)
             
-            # Generate initial audio
             y_g_hat = self.hifigan(mel_outputs_postnet.float())
             audio = y_g_hat.squeeze() * MAX_WAV_VALUE
             audio_denoised = self.denoiser(audio.view(1, -1), strength=35)[:, 0]
             
-            # Normalize before super-resolution
             audio_denoised = audio_denoised.cpu().numpy().reshape(-1)
             normalize = (MAX_WAV_VALUE / np.max(np.abs(audio_denoised))) ** 0.9
             audio_denoised = audio_denoised * normalize
             
-            # Resample for super-resolution
             wave = resampy.resample(
                 audio_denoised,
                 self.h.sampling_rate,
@@ -144,7 +143,6 @@ class TTSSystem:
             )
             wave_out = wave.astype(np.int16)
             
-            # Super-resolution
             wave = wave / MAX_WAV_VALUE
             wave = torch.FloatTensor(wave).to(self.device)
             new_mel = mel_spectrogram(
@@ -162,15 +160,12 @@ class TTSSystem:
             audio2 = y_g_hat2.squeeze() * MAX_WAV_VALUE
             audio2_denoised = self.denoiser_sr(audio2.view(1, -1), strength=35)[:, 0]
             
-            # High-pass filter and mixing
             audio2_denoised = audio2_denoised.cpu().numpy().reshape(-1)
             b = scipy.signal.firwin(101, cutoff=10500, fs=self.h2.sampling_rate, pass_zero=False)
             y = scipy.signal.lfilter(b, [1.0], audio2_denoised)
             
-            # Apply super-resolution strength
             y *= self.superres_strength
             
-            # Final mixing
             y_out = y.astype(np.int16)
             y_padded = np.zeros(wave_out.shape)
             y_padded[:y_out.shape[0]] = y_out
@@ -178,22 +173,20 @@ class TTSSystem:
             sr_mix = sr_mix / normalize
             
             return sr_mix.astype(np.int16), self.h2.sampling_rate
+        
 
-if __name__ == "__main__":
-    tts = TTSSystem(superres_strength=1.0)
-    
-    try:
-        text = 'Esta es una prueba de texto a voz.'
-        if not text.strip():
-            pass
+    def tts_excecute(self, text: str, use_pronunciation: bool):
+        try:
+            if not text.strip():
+                pass
+                
+            audio, sr = self.synthesize(text, use_pronunciation)
             
-        audio, sr = tts.synthesize(text)
-        
-        from scipy.io.wavfile import write
-        output_path = "output_audio.wav"
-        write(output_path, sr, audio)
-        print(f"Generated: {output_path}")
-        
+            from scipy.io.wavfile import write
+            output_path = "output_audio.wav"
+            write(output_path, sr, audio)
+            print(f"Generated: {output_path}")
+            
 
-    except Exception as e:
-        print(f"Error: {str(e)}")
+        except Exception as e:
+            print(f"Error: {str(e)}")

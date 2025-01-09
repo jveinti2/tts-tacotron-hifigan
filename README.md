@@ -38,7 +38,7 @@ Descarga los modelos preentrenados desde [este enlace](https://drive.google.com/
 Ejecuta el siguiente comando para iniciar el programa:
 
 ```bash
-python main.py
+fastapi dev
 ```
 
 ---
