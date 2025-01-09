@@ -31,7 +31,8 @@ git clone --recursive https://github.com/justinjohn0306/hifi-gan.git
 
 ### 3. Descargar modelos preentrenados
 
-Descarga los modelos preentrenados desde [este enlace](https://drive.google.com/drive/folders/1ZlLYwqYV9Cd_JBrOhMRvXnbq6Zy3oKdl?usp=sharing) y colócalos en la raíz del proyecto.
+-- modelo entrenado en pasos anteriores
+-- MLPTTS
 
 ### 4. Ejecutar la aplicación
 
