@@ -51,3 +51,7 @@ fastapi dev
 - [Colab de transcripción](https://colab.research.google.com/drive/179oopKDixj00hjkJmtQ-UWTYZ4xT9cZj?usp=sharing)
 
 ---
+
+## Interes
+
+En el proceso de vivir en una instancia Ec2 con amazon linux y GPU nvidia, se hizo necesario seguir [guia de instalacion CUDA](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/install-nvidia-driver.html#nvidia-driver-types)

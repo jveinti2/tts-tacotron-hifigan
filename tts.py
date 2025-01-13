@@ -20,7 +20,7 @@ import scipy.signal
 import resampy
 
 class TTSSystem:
-    def __init__(self, superres_strength=1.0):
+    def __init__(self, superres_strength=0.7):
         print(''.center(100, '*'))
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.superres_strength = superres_strength
@@ -28,7 +28,7 @@ class TTSSystem:
         self.initialize_tacotron()
         self.initialize_hifigan()
     
-    def load_pronunciation_dict(self):
+    def load_pronunciation_dict(self): 
         try:
             with open('merged.dict.txt', "r", encoding='utf-8') as file:
                 self.pronunciation_dict = {}
@@ -43,8 +43,8 @@ class TTSSystem:
     def initialize_tacotron(self):
         hparams = create_hparams()
         hparams.sampling_rate = 22050
-        hparams.max_decoder_steps = 3000
-        hparams.gate_threshold = 0.25
+        hparams.max_decoder_steps = 2000
+        hparams.gate_threshold = 0.3
         
         self.model = Tacotron2(hparams).to(self.device)
         state_dict = torch.load('es_co_fe', map_location=self.device)['state_dict']
@@ -127,7 +127,7 @@ class TTSSystem:
             
             y_g_hat = self.hifigan(mel_outputs_postnet.float())
             audio = y_g_hat.squeeze() * MAX_WAV_VALUE
-            audio_denoised = self.denoiser(audio.view(1, -1), strength=35)[:, 0]
+            audio_denoised = self.denoiser(audio.view(1, -1), strength=25)[:, 0]
             
             audio_denoised = audio_denoised.cpu().numpy().reshape(-1)
             normalize = (MAX_WAV_VALUE / np.max(np.abs(audio_denoised))) ** 0.9
@@ -161,7 +161,7 @@ class TTSSystem:
             audio2_denoised = self.denoiser_sr(audio2.view(1, -1), strength=35)[:, 0]
             
             audio2_denoised = audio2_denoised.cpu().numpy().reshape(-1)
-            b = scipy.signal.firwin(101, cutoff=10500, fs=self.h2.sampling_rate, pass_zero=False)
+            b = scipy.signal.firwin(101, cutoff=8500, fs=self.h2.sampling_rate, pass_zero=False)
             y = scipy.signal.lfilter(b, [1.0], audio2_denoised)
             
             y *= self.superres_strength
@@ -174,7 +174,6 @@ class TTSSystem:
             
             return sr_mix.astype(np.int16), self.h2.sampling_rate
         
-
     def tts_excecute(self, text: str, use_pronunciation: bool):
         try:
             if not text.strip():
@@ -183,7 +182,7 @@ class TTSSystem:
             audio, sr = self.synthesize(text, use_pronunciation)
             
             from scipy.io.wavfile import write
-            output_path = "output_audio.wav"
+            output_path = "output_audio.wav" 
             write(output_path, sr, audio)
             print(f"Generated: {output_path}")
             
